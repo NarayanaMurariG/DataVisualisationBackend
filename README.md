@@ -1,1 +1,3 @@
 # DataVisualisationBackend
+
+Dependencies needed : requests
