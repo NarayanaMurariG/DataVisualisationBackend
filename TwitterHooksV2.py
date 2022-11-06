@@ -17,7 +17,10 @@ def update_json_file(file_name, new_data):
     if os.path.exists(file_name):
         with open(file_name, 'r+') as file:
             file_data = json.load(file)
-            file_data.update(new_data)
+            if file_name == 'bot_data':
+                file_data.update(new_data)
+            else:
+                file_data.append(new_data)
             file.seek(0)
             json.dump(file_data, file, ensure_ascii=False, indent=4)
     else:
@@ -70,7 +73,7 @@ def filterForLocation(data):
 
 def getTweetsBatch(keywords, next_token):
     recent_tweets_url = "https://api.twitter.com/2/tweets/search/recent"
-    params = {'query': keywords+' -is:retweet', 'tweet.fields': 'text,author_id,conversation_id,geo,context_annotations,created_at'}
+    params = {'query': keywords+' -is:retweet', 'tweet.fields': 'text,author_id,conversation_id,geo,context_annotations,created_at,public_metrics'}
 
     if next_token != None:
         params['next_token'] = next_token
@@ -101,7 +104,8 @@ def filter_data_set(final_data_set):
                  'conversation_id': data['conversation_id'],
                  'text': data['text'],
                  'geo': data['geo']['place_id'],
-                 'created_at': data['created_at']
+                 'created_at': data['created_at'],
+                 'public_metrics': data['public_metrics']
                  }
 
         domains = set()
@@ -150,17 +154,16 @@ def get_tweet_conversation(tweet_data):
             data = response.json()['data'] # List of objects
             users = response.json()['includes']['users'] # List
             usernames.extend(users)
-            list = []
-            for convo in data:
+            if len(data) > 0:
+                convo = data[0]
                 item = {
                     'author_id': convo['author_id'],
                     'text': convo['text'],
                     'created_at': convo['created_at']
                 }
-                list.append(item)
-
-            # Keys are conversation Id's
-            conversation_data[tweet['conversation_id']] = list
+                conversation_data[tweet['conversation_id']] = item
+            else:
+                conversation_data[tweet['conversation_id']] = {}
 
     return conversation_data, usernames
 
@@ -170,7 +173,7 @@ def get_bot_data(usernames):
 
 def build_dataset_for_keywords(requirements):
 
-    final_json = {}
+    final_json = []
     final_bot_data = {}
     for data in requirements:
         tweet_data = get_recent_tweets_counts(data['keyword'], data['count'])
@@ -180,7 +183,7 @@ def build_dataset_for_keywords(requirements):
         bot_data = get_bot_data(usernames)
         final_bot_data.update(bot_data)
         merged_json = merge_all_jsons(conversation_data,tweet_data)
-        final_json.update(merged_json)
+        final_json.extend(merged_json)
 
 
     update_json_file('tweet_data',final_json)
@@ -190,13 +193,13 @@ def build_dataset_for_keywords(requirements):
 
 
 def merge_all_jsons(conversation_data,tweet_data):
-    merged_json = {}
+    merged_json = []
     for tweet in tweet_data:
         tweet_id = tweet['id']
         conversation_id = tweet['conversation_id']
         tweet['conversation_data'] = conversation_data[conversation_id]
 
-        merged_json[tweet_id] = tweet
+        merged_json.append(tweet)
 
     return merged_json
 
