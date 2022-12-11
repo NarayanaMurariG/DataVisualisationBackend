@@ -21,7 +21,7 @@ def update_json_file(file_name, new_data):
             if file_name == 'bot_data':
                 file_data.update(new_data)
             else:
-                file_data.append(new_data)
+                file_data.extend(new_data)
             file.seek(0)
             json.dump(file_data, file, ensure_ascii=False, indent=4)
     else:
