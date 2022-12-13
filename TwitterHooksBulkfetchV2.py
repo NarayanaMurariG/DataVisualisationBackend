@@ -66,15 +66,17 @@ def get_recent_tweets_counts(keyword,size_per_keyword):
     data, tweets_without_geo, next_token = getTweetsBatch(keyword, None)
     final_data_set.extend(data)
     final_data_set_without_geo.extend(tweets_without_geo)
-    count = count + len(data)
+    # count = count + len(data)
+    count = count + len(final_data_set) + len(final_data_set_without_geo)
     while count < size_per_keyword and next_token:
         data, tweets_without_geo, next_token = getTweetsBatch(keyword, next_token)
         final_data_set.extend(data)
         final_data_set_without_geo.extend(tweets_without_geo)
-        count = count + len(data)
+        count = count + len(data) + len(tweets_without_geo)
+        # count = count + len(data)
 
 
-    print(keyword + ' - Tweet Count - ' +str(len(final_data_set)))
+    print(keyword + ' - Tweet Count ' +str(count))
     return final_data_set, final_data_set_without_geo
 
 
@@ -299,17 +301,19 @@ def merge_all_jsons(conversation_data,tweet_data):
 
 
 """
-    Use this script if you want specific number of tweets which have location
-    Ex {'keyword': 'Bonus', 'count': 10}
-    Above requirement will make the script run until 10 recent tweets which contain
-    word Bonus as well as geo location are fetched.
-    
+    Use this script if you want specific number of tweets irrespective of location
+    Ex {'keyword': 'Bonus', 'count': 200}
+    Above requirement will make the script run until 200 recent tweets which contain
+    word Bonus are fetched.
+
     Used when we need to find recent tweets with geo location
 """
 if __name__ == "__main__":
     # Below is a list of keywords and no of tweets to fetch per key word
+
     requirements = [
-        {'keyword': 'Bonus', 'count': 1},
-        {'keyword': 'Free', 'count': 1}
+        {'keyword': 'Bitcoin', 'count': 5},
+        {'keyword': 'recession', 'count': 2},
+        {'keyword': 'free speech', 'count': 5}
     ]
     build_dataset_for_keywords(requirements)

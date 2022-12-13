@@ -1,6 +1,11 @@
 from math import log10
 import random
 
+
+"""
+    Creating organic metrics and converting onto a
+    log scale
+"""
 def create_organic_metrics():
     """
         "organic_metrics": {
